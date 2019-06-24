@@ -93,14 +93,14 @@ static void mdss_dsi_panel_bklt_pwm(struct mdss_dsi_ctrl_pdata *ctrl, int level)
 		}
 		ctrl->pwm_enabled = 0;
 		reg = regulator_get(NULL,"lcdb_ldo");
-		if(reg)
+		if(reg && (cts_gesture_status == 0))
 			{
 			ret_reg = regulator_disable(reg);
 			regulator_put(reg);
 			}
 
 		reg = regulator_get(NULL,"lcdb_ncp");
-		if(reg)
+		if(reg && (cts_gesture_status == 0))
 			{
 			ret_reg = regulator_disable(reg);
 			regulator_put(reg);
