@@ -74,8 +74,10 @@ end:
 static void mdss_dsi_panel_bklt_pwm(struct mdss_dsi_ctrl_pdata *ctrl, int level)
 {
 	int ret;
+//	int ret_reg = 0;
 	u32 duty;
 	u32 period_ns;
+//	struct regulator *reg;
 	if (ctrl->pwm_bl == NULL) {
 		pr_err("%s: no PWM\n", __func__);
 		return;
@@ -91,6 +93,21 @@ static void mdss_dsi_panel_bklt_pwm(struct mdss_dsi_ctrl_pdata *ctrl, int level)
 			pwm_disable(ctrl->pwm_bl);
 		}
 		ctrl->pwm_enabled = 0;
+#if 0
+		reg = regulator_get(NULL,"lcdb_ldo");
+		if(reg)
+			{
+			ret_reg = regulator_disable(reg);
+			regulator_put(reg);
+			}
+
+		reg = regulator_get(NULL,"lcdb_ncp");
+		if(reg)
+			{
+			ret_reg = regulator_disable(reg);
+			regulator_put(reg);
+			}
+#endif
 		return;
 	}
 
@@ -366,9 +383,7 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
 	struct mdss_panel_info *pinfo = NULL;
-	struct regulator *reg;
-	int ret_reg = 0;
-	int i, rc = 0;
+int i, rc = 0;
 
 	if (pdata == NULL) {
 		pr_err("%s: Invalid input data\n", __func__);
@@ -520,27 +535,11 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			usleep_range(100, 110);
 			gpio_free(ctrl_pdata->disp_en_gpio);
 		}
-		if (cts_gesture_status == 0)
-                {
-			pr_debug("%s: Turn off RST_GPIO_N\n",__func__);
-			gpio_set_value((ctrl_pdata->rst_gpio), 0);
-			reg = regulator_get(NULL,"lcdb_ldo");
-			if(reg)
-				{
-				ret_reg = regulator_disable(reg);
-				regulator_put(reg);
-				pr_debug("%s: Turn off LDO\n",__func__);
-				}
-			reg = regulator_get(NULL,"lcdb_ncp");
-			if(reg)
-				{
-				ret_reg = regulator_disable(reg);
-				regulator_put(reg);
-				pr_debug("%s: Turn off NCP\n",__func__);
-			}
-                }
-			gpio_free(ctrl_pdata->rst_gpio);
-
+#if 0
+		pr_err("gxy %s: set rst gpio 0\n", __func__);
+		gpio_set_value((ctrl_pdata->rst_gpio), 0);
+#endif
+		gpio_free(ctrl_pdata->rst_gpio);
 		if (gpio_is_valid(ctrl_pdata->mode_gpio))
 			gpio_free(ctrl_pdata->mode_gpio);
 	}

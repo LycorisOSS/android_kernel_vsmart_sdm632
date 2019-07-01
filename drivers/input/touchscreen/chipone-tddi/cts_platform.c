@@ -762,7 +762,7 @@ int cts_plat_init_gesture(struct cts_platform_data *pdata)
     cts_info("Init gesture");
 
     // TODO: If system will issure enable/disable command, comment following line.
-    //cts_enable_gesture_wakeup(pdata->cts_dev);
+    cts_enable_gesture_wakeup(pdata->cts_dev);	//gxy
 
     for (i = 0; i < pdata->gesture_num; i ++) {
         input_set_capability(pdata->ts_input_dev, EV_KEY,

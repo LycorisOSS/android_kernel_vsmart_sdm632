@@ -65,7 +65,7 @@ static int cts_resume(struct chipone_ts_data *cts_data)
         ret = cts_plat_disable_irq_wake(cts_data->pdata);
         if (ret) {
             cts_warn("Disable IRQ wake failed %d", ret);
-            //return ret;
+            return ret;	//gxy
         }
 /*
         if ((ret = cts_plat_disable_irq(cts_data->pdata)) < 0) {

@@ -2212,10 +2212,10 @@ int regulator_enable(struct regulator *regulator)
 	struct regulator_dev *rdev = regulator->rdev;
 	int ret = 0;
 
-
+#if 0
 	if(!strcmp(rdev->desc->name,"lcdb_ldo"))
 		regulator->always_on = 0;
-
+#endif
 	if (regulator->always_on)
 		return 0;
 
@@ -2282,10 +2282,11 @@ static int _regulator_disable(struct regulator_dev *rdev)
 		 "unbalanced disables for %s\n", rdev_get_name(rdev)))
 		return -EIO;
 
+#if 0
 	if (rdev->use_count == 1 &&
 	    (!strcmp(rdev->desc->name,"lcdb_ldo") || !strcmp(rdev->desc->name,"lcdb_ncp")))
 	   rdev->constraints->always_on = 0;
-
+#endif
 	/* are we the last user and permitted to disable ? */
 	if (rdev->use_count == 1 &&
 	    (rdev->constraints && !rdev->constraints->always_on)) {
@@ -2337,9 +2338,10 @@ int regulator_disable(struct regulator *regulator)
 {
 	struct regulator_dev *rdev = regulator->rdev;
 	int ret = 0;
-
+#if 0
 	if(!strcmp(rdev->desc->name,"lcdb_ldo"))
 		regulator->always_on = 0;
+#endif
 
 	if (regulator->always_on)
 		return 0;
