@@ -54,7 +54,7 @@
 #define FTS_CHIP_IDC            ((FTS_CHIP_TYPE & FLAGBIT(FLAG_IDC_BIT)) == FLAGBIT(FLAG_IDC_BIT))
 #define FTS_HID_SUPPORTTED      ((FTS_CHIP_TYPE & FLAGBIT(FLAG_HID_BIT)) == FLAGBIT(FLAG_HID_BIT))
 
-#define FTS_CHIP_TYPE_MAPPING {{0x03,0x54, 0x22, 0x64, 0x26, 0x00, 0x00, 0x79, 0x1C}}
+#define FTS_CHIP_TYPE_MAPPING {{0x03,0x86, 0x22, 0x64, 0x26, 0x00, 0x00, 0x79, 0x1C}}
 
 #define I2C_BUFFER_LENGTH_MAXINUM           256
 #define FILE_NAME_LENGTH                    128
@@ -139,7 +139,7 @@ struct ts_ic_info {
 * DEBUG function define here
 *****************************************************************************/
 #if FTS_DEBUG_EN
-#define FTS_DEBUG_LEVEL     1
+#define FTS_DEBUG_LEVEL     2
 #if (FTS_DEBUG_LEVEL == 2)
 #define FTS_DEBUG(fmt, args...) printk("[FTS][%s]"fmt"\n", __func__, ##args)
 #else

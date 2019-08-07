@@ -101,7 +101,7 @@
 /*
  * choose your ic chip type of focaltech
  */
-#define FTS_CHIP_TYPE   _FT6336U
+#define FTS_CHIP_TYPE   _FT8006M
 
 /******************* Enables *********************/
 /*********** 1 to enable, 0 to disable ***********/
@@ -215,19 +215,19 @@
  * define your own fw_file, the sample one to be replaced is invalid
  * NOTE: if FTS_GET_VENDOR_ID_NUM > 1, it's the fw corresponding with FTS_VENDOR_ID
  */
-#define FTS_UPGRADE_FW_HLT_FILE                   "include/firmware/QM215_HLT_FT6336U_480x854_V04_20190129_app.i"
+#define FTS_UPGRADE_FW_HLT_FILE                   ""
 
 /*
  * if FTS_GET_VENDOR_ID_NUM >= 2, fw corrsponding with FTS_VENDOR_ID2
  * define your own fw_file, the sample one is invalid
  */
-#define FTS_UPGRADE_FW_LD_FILE                     "include/firmware/QM215_LD_FT6336U_480x854_V02_20190213_app.i"
+#define FTS_UPGRADE_FW_LD_FILE                     ""
 
 /*
  * if FTS_GET_VENDOR_ID_NUM >= 3, fw corrsponding with FTS_VENDOR_ID3
  * define your own fw_file, the sample one is invalid
  */
-#define FTS_UPGRADE_FW_JT_FILE                     "include/firmware/QM215_JT_FT6336U_480x854_V03.i"
+#define FTS_UPGRADE_FW_JT_FILE                     ""
 
 /*********************************************************/
 

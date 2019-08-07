@@ -16,8 +16,7 @@
 #include <linux/delay.h>
 #include <linux/mdss_io_util.h>
 
-extern int cts_gesture_status;
-
+extern int gesture_mode_enable;
 #define MAX_I2C_CMDS  16
 void mdss_reg_w(struct mdss_io_data *io, u32 offset, u32 value, u32 debug)
 {
@@ -148,7 +147,6 @@ int msm_mdss_config_vreg(struct device *dev, struct mdss_vreg *in_vreg,
 
 	if (!in_vreg || !num_vreg)
 		return rc;
-
 	if (config) {
 		for (i = 0; i < num_vreg; i++) {
 			curr_vreg = &in_vreg[i];
@@ -265,10 +263,13 @@ int msm_mdss_enable_vreg(struct mdss_vreg *in_vreg, int num_vreg, int enable)
 {
 	int i = 0, rc = 0;
 	bool need_sleep;
-
 	if (enable) {
 		for (i = 0; i < num_vreg; i++) {
 			rc = PTR_RET(in_vreg[i].vreg);
+			//Since ibb and lab doen't disable we don't need to enable it again.
+			if((gesture_mode_enable != 0) && ((strcmp(in_vreg[i].vreg_name,"lab") == 0) ||
+				(strcmp(in_vreg[i].vreg_name,"ibb") == 0)))
+							continue;
 			if (rc) {
 				DEV_ERR("%pS->%s: %s regulator error. rc=%d\n",
 					__builtin_return_address(0), __func__,
@@ -298,9 +299,12 @@ int msm_mdss_enable_vreg(struct mdss_vreg *in_vreg, int num_vreg, int enable)
 				goto disable_vreg;
 			}
 		}
+		msleep(10);
 	} else {
-		if (cts_gesture_status == 0) {
-			for (i = num_vreg-1; i >= 0; i--) {			
+			for (i = num_vreg-1; i >= 0; i--) {
+				if((gesture_mode_enable != 0) && ((strcmp(in_vreg[i].vreg_name,"lab") == 0) ||
+					(strcmp(in_vreg[i].vreg_name,"ibb") == 0)))
+								continue;
 				if (in_vreg[i].pre_off_sleep)
 					usleep_range((in_vreg[i].pre_off_sleep * 1000),
 						(in_vreg[i].pre_off_sleep * 1000) + 10);
@@ -315,7 +319,7 @@ int msm_mdss_enable_vreg(struct mdss_vreg *in_vreg, int num_vreg, int enable)
 					(in_vreg[i].post_off_sleep * 1000) + 10);
 			}
 		}
-	}
+
 	return rc;
 
 disable_vreg:
