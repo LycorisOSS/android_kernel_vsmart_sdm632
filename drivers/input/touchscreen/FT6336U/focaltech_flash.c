@@ -44,15 +44,15 @@
 *****************************************************************************/
 /* Upgrade FW/PRAMBOOT/LCD CFG */
 u8 fw_file[] = {
-#include FTS_UPGRADE_FW_HLT_FILE
+//#include FTS_UPGRADE_FW_HLT_FILE
 };
 
 u8 fw_file2[] = {
-#include FTS_UPGRADE_FW_LD_FILE
+//#include FTS_UPGRADE_FW_LD_FILE
 };
 
 u8 fw_file3[] = {
-#include FTS_UPGRADE_FW_JT_FILE
+//#include FTS_UPGRADE_FW_JT_FILE
 };
 
 struct upgrade_fw fw_list[] = {

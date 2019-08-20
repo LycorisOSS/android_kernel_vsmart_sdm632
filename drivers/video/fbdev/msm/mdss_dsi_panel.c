@@ -31,7 +31,6 @@
 #endif
 #include "mdss_debug.h"
 
-extern int cts_gesture_status;
 
 #define DT_CMD_HDR 6
 #define DEFAULT_MDP_TRANSFER_TIME 14000
