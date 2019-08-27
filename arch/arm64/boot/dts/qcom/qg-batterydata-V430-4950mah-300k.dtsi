@@ -1,12 +1,12 @@
-qcom,4082433_Linkchip_Q183_JLQ_4450mAH_PMI632 {
+qcom,4082433_Linkchip_Q183_JLQ_4950mAH_PMI632 {
     /* 4082433_Linkchip_Q183_JLQ_4450mAH_PMI632_averaged_MasterSlave_Jul1th2019 */
     qcom,max-voltage-uv = <4400000>;
     qcom,fg-cc-cv-threshold-mv = <4390>;
     qcom,fastchg-current-ma = <3000>;
-    qcom,batt-id-kohm = <10>;
+    qcom,batt-id-kohm = <300>;
     qcom,battery-beta = <3380>;
     qcom,battery-therm-kohm = <10>;
-    qcom,battery-type = "4082433_Linkchip_Q183_JLQ_4450mAH_PMI632_averaged_MasterSlave_Jul1th2019";
+    qcom,battery-type = "4082433_Linkchip_Q183_JLQ_4950mAH_PMI632_averaged_MasterSlave_Jul1th2019";
     qcom,qg-batt-profile-ver = <100>;
     /* COOL = 5 DegC, WARM = 45 DegC */
     qcom,jeita-soft-thresholds = <0x3077 0x753>;
