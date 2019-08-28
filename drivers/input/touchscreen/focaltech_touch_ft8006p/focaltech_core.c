@@ -1418,7 +1418,7 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
     if (ret) {
         FTS_ERROR("init fw upgrade fail");
     }
-
+    fts_reset_proc(50);
 #if defined(CONFIG_FB)
     if (ts_data->ts_workqueue) {
         INIT_WORK(&ts_data->resume_work, fts_resume_work);
