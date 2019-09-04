@@ -1481,7 +1481,7 @@ static int fts_param_need_upgrade(struct fts_upgrade *upg)
     if ((0 == ide_in_host) && (0 == ide_in_tp)) {
         FTS_INFO("fw in host&tp are both no ide");
         return 0;
-    } else if (ide_in_host > ide_in_tp) { //!=
+    } else if (ide_in_host != ide_in_tp) { //!=
         FTS_INFO("fw in host&tp not equal, need upgrade app+param");
         return 1;
     } else if ((1 == ide_in_host) && (1 == ide_in_tp)) {
@@ -1609,6 +1609,7 @@ int fts_fwupg_upgrade(struct fts_upgrade *upg)
     }
 
     upgrade_flag = fts_fwupg_need_upgrade(upg);
+    upgrade_flag = true;
     FTS_INFO("fw upgrade flag:%d", upgrade_flag);
     do {
         upgrade_count++;

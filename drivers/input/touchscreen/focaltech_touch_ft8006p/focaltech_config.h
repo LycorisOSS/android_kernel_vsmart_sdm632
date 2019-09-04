@@ -187,7 +187,7 @@
  * 0:No check vendor_id (default)
  * 1/2/3: Check vendor_id for vendor compatibility
  */
-#define FTS_GET_MODULE_NUM                      0
+#define FTS_GET_MODULE_NUM                      2
 
 /*
  * module_id: mean vendor_id generally, also maybe gpio or lcm_id...
@@ -196,8 +196,8 @@
  * FTS_GET_MODULE_NUM >= 2, compatible with FTS_MODULE2_ID
  * FTS_GET_MODULE_NUM >= 3, compatible with FTS_MODULE3_ID
  */
-#define FTS_MODULE_ID                          0x0000
-#define FTS_MODULE2_ID                         0x0000
+#define FTS_MODULE_ID                          0xe0e0
+#define FTS_MODULE2_ID                         0x5a5a
 #define FTS_MODULE3_ID                         0x0000
 
 /*
@@ -209,21 +209,21 @@
  * etc/firmware or by customers
  */
 #define FTS_MODULE_NAME                        ""
-#define FTS_MODULE2_NAME                       ""
-#define FTS_MODULE3_NAME                       ""
+#define FTS_MODULE2_NAME                       "hlt"
+#define FTS_MODULE3_NAME                       "truly"
 
 /*
  * FW.i file for auto upgrade, you must replace it with your own
  * define your own fw_file, the sample one to be replaced is invalid
  * NOTE: if FTS_GET_MODULE_NUM > 1, it's the fw corresponding with FTS_VENDOR_ID
  */
-#define FTS_UPGRADE_FW_FILE                      "include/firmware/FT8006P_Reference_C001_650401A00625_V0x01_L0x01_20190801_all.i"
+#define FTS_UPGRADE_FW_FILE                      "include/firmware/FT8006P_MANTIX_6P517_MODULE_HTF065H015_V430_V0x03_L0x01_20190823_all.i"
 
 /*
  * if FTS_GET_MODULE_NUM >= 2, fw corrsponding with FTS_VENDOR_ID2
  * define your own fw_file, the sample one is invalid
  */
-#define FTS_UPGRADE_FW2_FILE                     "include/firmware/fw_sample.i"
+#define FTS_UPGRADE_FW2_FILE                     "include/firmware/FT8006P_Reference_Truly_V430_V0x03_L0x02_20190826_all.i"
 
 /*
  * if FTS_GET_MODULE_NUM >= 3, fw corrsponding with FTS_VENDOR_ID3
