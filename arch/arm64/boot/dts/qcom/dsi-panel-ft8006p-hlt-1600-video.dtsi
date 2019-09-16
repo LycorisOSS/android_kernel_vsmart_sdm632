@@ -188,11 +188,11 @@
 		qcom,mdss-dsi-lane-1-state;
 		qcom,mdss-dsi-lane-2-state;
 		qcom,mdss-dsi-lane-3-state;
-		qcom,mdss-dsi-reset-sequence = <1 5>, <0 5>, <1 120>;
+		qcom,mdss-dsi-reset-sequence = <1 5>, <0 5>, <1 30>;
 		qcom,mdss-dsi-hfp-power-mode;
 		qcom,esd-check-enabled;
-		qcom,mdss-dsi-te-check-enable;
-		qcom,mdss-dsi-panel-status-check-mode = "te_signal_check"; 
+		//qcom,mdss-dsi-te-check-enable;
+		//qcom,mdss-dsi-panel-status-check-mode = "te_signal_check";
 
 		qcom,mdss-dsi-lp11-init;
 		qcom,mdss-dsi-post-init-delay = <2>;

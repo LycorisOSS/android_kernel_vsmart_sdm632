@@ -50,7 +50,7 @@
 * Private constant and macro definitions using #define
 *****************************************************************************/
 #define FTS_DRIVER_NAME                     "fts_ts"
-#define INTERVAL_READ_REG                   200  /* unit:ms */
+#define INTERVAL_READ_REG                   50  /* unit:ms */
 #define TIMEOUT_READ_REG                    1000 /* unit:ms */
 #if FTS_POWER_SOURCE_CUST_EN
 #define FTS_VTG_MIN_UV                      2600000
@@ -577,8 +577,12 @@ static int fts_read_touchdata(struct fts_ts_data *data)
 
 
 #if FTS_GESTURE_EN
+    if(data->fb_callback_event == FB_EARLY_EVENT_BLANK) {
+        FTS_INFO("FB_EARLY_EVENT_BLANK, don't care");
+        return 1;
+    }
     if (0 == fts_gesture_readdata(data, NULL)) {
-        FTS_INFO("succuss to get gesture data in irq handler");
+        FTS_INFO("success to get gesture data in irq handler");
         return 1;
     }
 #endif
@@ -606,7 +610,6 @@ static int fts_read_parse_touchdata(struct fts_ts_data *data)
     struct ts_event *events = data->events;
     int max_touch_num = data->pdata->max_touch_number;
     u8 *buf = data->point_buf;
-
     ret = fts_read_touchdata(data);
     if (ret) {
         return ret;
@@ -1254,6 +1257,7 @@ static int fb_notifier_callback(struct notifier_block *self,
 
     blank = evdata->data;
     FTS_INFO("FB event:%lu,blank:%d", event, *blank);
+    ts_data->fb_callback_event = event;
     switch (*blank) {
     case FB_BLANK_UNBLANK:
         if (FB_EARLY_EVENT_BLANK == event) {

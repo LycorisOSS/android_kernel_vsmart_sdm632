@@ -158,6 +158,7 @@ struct fts_ts_data {
     int irq;
     int log_level;
     int fw_is_running;      /* confirm fw is running when using spi:default 0 */
+    int fb_callback_event;
     bool suspended;
     bool fw_loading;
     bool irq_disabled;
