@@ -266,7 +266,7 @@ static int print_data(u8 *buf, u32 len)
 
     p = kzalloc(len * 4, GFP_KERNEL);
     for (i = 0; i < len; i++) {
-        n += sprintf(p + n, "%02x ", buf[i]);
+        n += snprintf(p + n, (len * 4 - n), "%02x ", buf[i]);
     }
 
     FTS_DEBUG("%s", p);

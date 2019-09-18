@@ -89,7 +89,7 @@ static ssize_t fts_debug_write(
     int buflen = count;
     int writelen = 0;
     int ret = 0;
-    char tmp[25];
+    char tmp[PROC_BUF_SIZE];
     struct fts_ts_data *ts_data = fts_data;
     struct ftxxxx_proc *proc = &ts_data->proc;
 
@@ -143,6 +143,10 @@ static ssize_t fts_debug_write(
 
     case PROC_READ_DATA:
         writelen = buflen - 1;
+        if (writelen >= FTX_MAX_COMMMAND_LENGTH) {
+            FTS_ERROR("cmd(PROC_READ_DATA) length(%d) fail", writelen);
+            goto proc_write_err;
+        }
         memcpy(proc->cmd, writebuf + 1, writelen);
         proc->cmd_len = writelen;
         ret = fts_write(writebuf + 1, writelen);
@@ -165,7 +169,7 @@ static ssize_t fts_debug_write(
         break;
 
     case PROC_HW_RESET:
-        snprintf(tmp, PAGE_SIZE, "%s", writebuf + 1);
+        snprintf(tmp, PROC_BUF_SIZE, "%s", writebuf + 1);
         tmp[buflen - 1] = '\0';
         if (strncmp(tmp, "focal_driver", 12) == 0) {
             FTS_INFO("APK execute HW Reset");
@@ -294,7 +298,7 @@ static int fts_debug_write(
     int buflen = count;
     int writelen = 0;
     int ret = 0;
-    char tmp[25];
+    char tmp[PROC_BUF_SIZE];
     struct fts_ts_data *ts_data = fts_data;
     struct ftxxxx_proc *proc = &ts_data->proc;
 
@@ -348,6 +352,10 @@ static int fts_debug_write(
 
     case PROC_READ_DATA:
         writelen = buflen - 1;
+        if (writelen >= FTX_MAX_COMMMAND_LENGTH) {
+           FTS_ERROR("cmd(PROC_READ_DATA) length(%d) fail", writelen);
+           goto proc_write_err;
+        }
         memcpy(proc->cmd, writebuf + 1, writelen);
         proc->cmd_len = writelen;
         ret = fts_write(writebuf + 1, writelen);
@@ -370,11 +378,27 @@ static int fts_debug_write(
         break;
 
     case PROC_HW_RESET:
-        snprintf(tmp, PAGE_SIZE, "%s", writebuf + 1);
+        snprintf(tmp, PROC_BUF_SIZE, "%s", writebuf + 1);
         tmp[buflen - 1] = '\0';
         if (strncmp(tmp, "focal_driver", 12) == 0) {
             FTS_INFO("APK execute HW Reset");
             fts_reset_proc(0);
+        }
+        break;
+    case PROC_SET_BOOT_MODE:
+        FTS_DEBUG("[APK]: PROC_SET_BOOT_MODE = %x", writebuf[1]);
+        if (0 == writebuf[1]) {
+            ts_data->fw_is_running = true;
+        } else {
+            ts_data->fw_is_running = false;
+        }
+        break;
+    case PROC_ENTER_TEST_ENVIRONMENT:
+        FTS_DEBUG("[APK]: PROC_ENTER_TEST_ENVIRONMENT = %x", writebuf[1]);
+        if (0 == writebuf[1]) {
+            fts_enter_test_environment(0);
+        } else {
+            fts_enter_test_environment(1);
         }
         break;
 
@@ -892,7 +916,7 @@ static ssize_t fts_fwupgradebin_store(
         return -EINVAL;
     }
     memset(fwname, 0, sizeof(fwname));
-    snprintf(fwname, PAGE_SIZE, "%s", buf);
+    snprintf(fwname, FILE_NAME_LENGTH, "%s", buf);
     fwname[count - 1] = '\0';
 
     FTS_INFO("upgrade with bin file through sysfs node");
@@ -922,7 +946,7 @@ static ssize_t fts_fwforceupg_store(
         return -EINVAL;
     }
     memset(fwname, 0, sizeof(fwname));
-    snprintf(fwname, PAGE_SIZE, "%s", buf);
+    snprintf(fwname, FILE_NAME_LENGTH, "%s", buf);
     fwname[count - 1] = '\0';
 
     FTS_INFO("force upgrade through sysfs node");

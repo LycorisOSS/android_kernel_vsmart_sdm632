@@ -50,10 +50,10 @@
 * Private constant and macro definitions using #define
 *****************************************************************************/
 #define FTS_DRIVER_NAME                     "fts_ts"
-#define INTERVAL_READ_REG                   50  /* unit:ms */
+#define INTERVAL_READ_REG                   200  /* unit:ms */
 #define TIMEOUT_READ_REG                    1000 /* unit:ms */
 #if FTS_POWER_SOURCE_CUST_EN
-#define FTS_VTG_MIN_UV                      2600000
+#define FTS_VTG_MIN_UV                      2800000
 #define FTS_VTG_MAX_UV                      3300000
 #define FTS_I2C_VTG_MIN_UV                  1800000
 #define FTS_I2C_VTG_MAX_UV                  1800000
@@ -82,15 +82,18 @@ int fts_wait_tp_to_valid(void)
 {
     int ret = 0;
     int cnt = 0;
-    u8 reg_value = 0;
-    u8 chip_id = fts_data->ic_info.ids.chip_idh;
+    u8 idh = 0;
+    u8 idl = 0;
+    u8 chip_idh = fts_data->ic_info.ids.chip_idh;
+    u8 chip_idl = fts_data->ic_info.ids.chip_idl;
 
     do {
-        ret = fts_read_reg(FTS_REG_CHIP_ID, &reg_value);
-        if ((ret < 0) || (reg_value != chip_id)) {
-            FTS_DEBUG("TP Not Ready, ReadData = 0x%x", reg_value);
-        } else if (reg_value == chip_id) {
-            FTS_INFO("TP Ready, Device ID = 0x%x", reg_value);
+        ret = fts_read_reg(FTS_REG_CHIP_ID, &idh);
+        ret = fts_read_reg(FTS_REG_CHIP_ID2, &idl);
+        if ((ret < 0) || (idh != chip_idh) || (idl != chip_idl)) {
+            FTS_DEBUG("TP Not Ready,ReadData:0x%02x%02x", idh, idl);
+        } else if ((idh == chip_idh) && (idl == chip_idl)) {
+            FTS_INFO("TP Ready,Device ID:0x%02x%02x", idh, idl);
             return 0;
         }
         cnt++;
@@ -574,21 +577,20 @@ static int fts_read_touchdata(struct fts_ts_data *data)
     u8 *buf = data->point_buf;
 
     memset(buf, 0xFF, data->pnt_buf_size);
+    buf[0] = 0x01;
 
-
-#if FTS_GESTURE_EN
-    if(data->fb_callback_event == FB_EARLY_EVENT_BLANK) {
-        FTS_INFO("FB_EARLY_EVENT_BLANK, don't care");
-        return 1;
+    if (data->gesture_mode) {
+        if (data->fb_callback_event == FB_EARLY_EVENT_BLANK) {
+            FTS_INFO("success to get gesture data in irq handler");
+            return 1;
+        }
+        if (0 == fts_gesture_readdata(data, NULL)) {
+            FTS_INFO("success to get gesture data in irq handler");
+            return 1;
+        }
     }
-    if (0 == fts_gesture_readdata(data, NULL)) {
-        FTS_INFO("success to get gesture data in irq handler");
-        return 1;
-    }
-#endif
 
-    buf[0] = 0x00;
-    ret = fts_read(buf, 1, buf, data->pnt_buf_size);
+    ret = fts_read(buf, 1, buf + 1, data->pnt_buf_size - 1);
     if (ret < 0) {
         FTS_ERROR("read touchdata failed, ret:%d", ret);
         return ret;
@@ -619,9 +621,10 @@ static int fts_read_parse_touchdata(struct fts_ts_data *data)
     data->touch_point = 0;
 
     if (data->ic_info.is_incell) {
-        if ((data->point_num == 0x0F) && (buf[1] == 0xFF) && (buf[2] == 0xFF)
-            && (buf[3] == 0xFF) && (buf[4] == 0xFF) && (buf[5] == 0xFF) && (buf[6] == 0xFF)) {
+                if ((data->point_num == 0x0F) && (buf[2] == 0xFF) && (buf[3] == 0xFF)
+                    && (buf[4] == 0xFF) && (buf[5] == 0xFF) && (buf[6] == 0xFF)) {
             FTS_DEBUG("touch buff is 0xff, need recovery state");
+            fts_release_all_finger();
             fts_tp_state_recovery(data);
             return -EIO;
         }
@@ -709,6 +712,7 @@ static int fts_irq_registration(struct fts_ts_data *ts_data)
     ts_data->irq = gpio_to_irq(pdata->irq_gpio);
     pdata->irq_gpio_flags = IRQF_TRIGGER_FALLING | IRQF_ONESHOT;
     FTS_INFO("irq:%d, flag:%x", ts_data->irq, pdata->irq_gpio_flags);
+
     ret = request_threaded_irq(ts_data->irq, NULL, fts_irq_handler,
                                pdata->irq_gpio_flags,
                                FTS_DRIVER_NAME, ts_data);
@@ -1305,6 +1309,7 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
     int pdata_size = sizeof(struct fts_ts_platform_data);
 
     FTS_FUNC_ENTER();
+    FTS_INFO("%s", FTS_DRIVER_VERSION);
     ts_data->pdata = kzalloc(pdata_size, GFP_KERNEL);
     if (!ts_data->pdata) {
         FTS_ERROR("allocate memory for platform_data fail");
@@ -1334,7 +1339,11 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
     mutex_init(&ts_data->bus_lock);
 
     /* Init communication interface */
-    fts_bus_init(ts_data);
+    ret = fts_bus_init(ts_data);
+    if (ret) {
+        FTS_ERROR("bus initialize fail");
+        goto err_bus_init;
+    }
 
     ret = fts_input_init(ts_data);
     if (ret) {
@@ -1371,19 +1380,16 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
         goto err_irq_req;
     }
 
-#if FTS_APK_NODE_EN
+
     ret = fts_create_apk_debug_channel(ts_data);
     if (ret) {
         FTS_ERROR("create apk debug node fail");
     }
-#endif
 
-#if FTS_SYSFS_NODE_EN
     ret = fts_create_sysfs(ts_data);
     if (ret) {
         FTS_ERROR("create sysfs node fail");
     }
-#endif
 
 #if FTS_POINT_REPORT_CHECK_EN
     ret = fts_point_report_check_init(ts_data);
@@ -1404,6 +1410,12 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
     }
 #endif
 
+#if FTS_TEST_EN
+    ret = fts_test_init(ts_data);
+    if (ret) {
+        FTS_ERROR("init production test fail");
+    }
+#endif
 
 #if FTS_ESDCHECK_EN
     ret = fts_esdcheck_init(ts_data);
@@ -1422,6 +1434,7 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
     if (ret) {
         FTS_ERROR("init fw upgrade fail");
     }
+
     fts_reset_proc(50);
 #if defined(CONFIG_FB)
     if (ts_data->ts_workqueue) {
@@ -1460,8 +1473,9 @@ err_report_buffer:
 err_input_init:
     if (ts_data->ts_workqueue)
         destroy_workqueue(ts_data->ts_workqueue);
-
-    kfree_safe(ts_data->bus_buf);
+err_bus_init:
+    kfree_safe(ts_data->bus_tx_buf);
+    kfree_safe(ts_data->bus_rx_buf);
     kfree_safe(ts_data->pdata);
 
     FTS_FUNC_EXIT();
@@ -1476,18 +1490,17 @@ static int fts_ts_remove_entry(struct fts_ts_data *ts_data)
     fts_point_report_check_exit(ts_data);
 #endif
 
-#if FTS_APK_NODE_EN
     fts_release_apk_debug_channel(ts_data);
-#endif
 
-#if FTS_SYSFS_NODE_EN
     fts_remove_sysfs(ts_data);
-#endif
 
     fts_ex_mode_exit(ts_data);
 
     fts_fwupg_exit(ts_data);
 
+#if FTS_TEST_EN
+    fts_test_exit(ts_data);
+#endif
 
 #if FTS_ESDCHECK_EN
     fts_esdcheck_exit(ts_data);
@@ -1544,6 +1557,8 @@ static int fts_ts_suspend(struct device *dev)
         return 0;
     }
 
+    fts_release_all_finger();
+
     if (ts_data->fw_loading) {
         FTS_INFO("fw upgrade in process, can't suspend");
         return 0;
@@ -1553,28 +1568,24 @@ static int fts_ts_suspend(struct device *dev)
     fts_esdcheck_suspend();
 #endif
 
-#if FTS_GESTURE_EN
-    if (fts_gesture_suspend(ts_data) == 0) {
-        /* Enter into gesture mode(suspend) */
-        ts_data->suspended = true;
-        return 0;
-    }
-#endif
+    if (ts_data->fts_gesture_enable && ts_data->gesture_mode) {
+        fts_gesture_suspend(ts_data);
+    } else {
+        fts_irq_disable();
 
-    fts_irq_disable();
+        FTS_INFO("make TP enter into sleep mode");
+        ret = fts_write_reg(FTS_REG_POWER_MODE, FTS_REG_POWER_MODE_SLEEP);
+        if (ret < 0)
+            FTS_ERROR("set TP to sleep mode fail, ret=%d", ret);
 
-    /* TP enter sleep mode */
-    ret = fts_write_reg(FTS_REG_POWER_MODE, FTS_REG_POWER_MODE_SLEEP_VALUE);
-    if (ret < 0)
-        FTS_ERROR("set TP to sleep mode fail, ret=%d", ret);
-
-    if (!ts_data->ic_info.is_incell) {
+        if (!ts_data->ic_info.is_incell) {
 #if FTS_POWER_SOURCE_CUST_EN
-        ret = fts_power_source_suspend(ts_data);
-        if (ret < 0) {
-            FTS_ERROR("power enter suspend fail");
-        }
+            ret = fts_power_source_suspend(ts_data);
+            if (ret < 0) {
+                FTS_ERROR("power enter suspend fail");
+            }
 #endif
+        }
     }
 
     ts_data->suspended = true;
@@ -1599,23 +1610,21 @@ static int fts_ts_resume(struct device *dev)
         fts_power_source_resume(ts_data);
 #endif
         fts_reset_proc(200);
-    }else {
+    } else {
         fts_reset_proc(50);
     }
-    fts_tp_state_recovery(ts_data);
+    fts_wait_tp_to_valid();
+    fts_ex_mode_recovery(ts_data);
 
 #if FTS_ESDCHECK_EN
     fts_esdcheck_resume();
 #endif
 
-#if FTS_GESTURE_EN
-    if (fts_gesture_resume(ts_data) == 0) {
-        ts_data->suspended = false;
-        return 0;
+    if (ts_data->fts_gesture_enable && ts_data->gesture_mode) {
+        fts_gesture_resume(ts_data);
+    } else {
+        fts_irq_enable();
     }
-#endif
-
-    fts_irq_enable();
 
     ts_data->suspended = false;
     FTS_FUNC_EXIT();

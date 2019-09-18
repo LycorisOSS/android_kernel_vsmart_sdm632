@@ -72,8 +72,6 @@
 #define FTS_ONE_TCH_LEN                     6
 #define FTS_TOUCH_DATA_LEN  (FTS_MAX_POINTS_SUPPORT * FTS_ONE_TCH_LEN + 3)
 
-#define FTS_SPI_CLK_MAX                     6000000
-
 #define FTS_GESTURE_POINTS_MAX              6
 #define FTS_GESTURE_DATA_LEN               (FTS_GESTURE_POINTS_MAX * 4 + 4)
 
@@ -159,6 +157,7 @@ struct fts_ts_data {
     int log_level;
     int fw_is_running;      /* confirm fw is running when using spi:default 0 */
     int fb_callback_event;
+    int dummy_byte;
     bool suspended;
     bool fw_loading;
     bool irq_disabled;
@@ -166,15 +165,18 @@ struct fts_ts_data {
     bool glove_mode;
     bool cover_mode;
     bool charger_mode;
+    bool gesture_mode;      /* gesture enable or disable, default: disable */
     /* multi-touch */
     struct ts_event *events;
-    u8 *bus_buf;
+    u8 *bus_tx_buf;
+    u8 *bus_rx_buf;
     u8 *point_buf;
     int pnt_buf_size;
     int touchs;
     int key_state;
     int touch_point;
     int point_num;
+    bool fts_gesture_enable;
     struct regulator *vdd;
     struct regulator *vcc_i2c;
 #if FTS_PINCTRL_EN
@@ -205,26 +207,20 @@ int fts_bus_init(struct fts_ts_data *ts_data);
 int fts_bus_exit(struct fts_ts_data *ts_data);
 
 /* Gesture functions */
-#if FTS_GESTURE_EN
 int fts_gesture_init(struct fts_ts_data *ts_data);
 int fts_gesture_exit(struct fts_ts_data *ts_data);
 void fts_gesture_recovery(struct fts_ts_data *ts_data);
 int fts_gesture_readdata(struct fts_ts_data *ts_data, u8 *data);
 int fts_gesture_suspend(struct fts_ts_data *ts_data);
 int fts_gesture_resume(struct fts_ts_data *ts_data);
-#endif
 
 /* Apk and functions */
-#if FTS_APK_NODE_EN
 int fts_create_apk_debug_channel(struct fts_ts_data *);
 void fts_release_apk_debug_channel(struct fts_ts_data *);
-#endif
 
 /* ADB functions */
-#if FTS_SYSFS_NODE_EN
 int fts_create_sysfs(struct fts_ts_data *ts_data);
 int fts_remove_sysfs(struct fts_ts_data *ts_data);
-#endif
 
 /* ESD */
 #if FTS_ESDCHECK_EN
@@ -237,6 +233,11 @@ int fts_esdcheck_suspend(void);
 int fts_esdcheck_resume(void);
 #endif
 
+/* Production test */
+#if FTS_TEST_EN
+int fts_test_init(struct fts_ts_data *ts_data);
+int fts_test_exit(struct fts_ts_data *ts_data);
+#endif
 
 /* Point Report Check*/
 #if FTS_POINT_REPORT_CHECK_EN
