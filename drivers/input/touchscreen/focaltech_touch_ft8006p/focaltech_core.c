@@ -128,14 +128,23 @@ void fts_tp_state_recovery(struct fts_ts_data *ts_data)
 
 int fts_reset_proc(int hdelayms)
 {
+    int ret;
     FTS_DEBUG("tp reset");
+    if (gpio_is_valid(fts_data->pdata->reset_gpio)) {
+    ret = gpio_request(fts_data->pdata->reset_gpio, "fts_reset_gpio");
+    if (ret) {
+        FTS_ERROR("request tp rst gpio failed, ret=%d\n", ret);
+        return 0;
+    }
+}
     gpio_direction_output(fts_data->pdata->reset_gpio, 0);
     msleep(5);
     gpio_direction_output(fts_data->pdata->reset_gpio, 1);
     if (hdelayms) {
         msleep(hdelayms);
     }
-
+    if (gpio_is_valid(fts_data->pdata->reset_gpio))
+        gpio_free(fts_data->pdata->reset_gpio);
     return 0;
 }
 
@@ -580,10 +589,6 @@ static int fts_read_touchdata(struct fts_ts_data *data)
     buf[0] = 0x01;
 
     if (data->gesture_mode) {
-        if (data->fb_callback_event == FB_EARLY_EVENT_BLANK) {
-            FTS_INFO("success to get gesture data in irq handler");
-            return 1;
-        }
         if (0 == fts_gesture_readdata(data, NULL)) {
             FTS_INFO("success to get gesture data in irq handler");
             return 1;
@@ -1102,6 +1107,7 @@ static int fts_gpio_configure(struct fts_ts_data *data)
             FTS_ERROR("[GPIO]set_direction for reset gpio failed");
             goto err_reset_gpio_dir;
         }
+        gpio_free(data->pdata->reset_gpio);
     }
 
     FTS_FUNC_EXIT();
@@ -1261,7 +1267,6 @@ static int fb_notifier_callback(struct notifier_block *self,
 
     blank = evdata->data;
     FTS_INFO("FB event:%lu,blank:%d", event, *blank);
-    ts_data->fb_callback_event = event;
     switch (*blank) {
     case FB_BLANK_UNBLANK:
         if (FB_EARLY_EVENT_BLANK == event) {
@@ -1610,8 +1615,6 @@ static int fts_ts_resume(struct device *dev)
         fts_power_source_resume(ts_data);
 #endif
         fts_reset_proc(200);
-    } else {
-        fts_reset_proc(50);
     }
     fts_wait_tp_to_valid();
     fts_ex_mode_recovery(ts_data);
