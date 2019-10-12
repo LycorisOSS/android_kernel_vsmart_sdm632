@@ -2,7 +2,7 @@ qcom,4204748_Linkchip_JVL_4950mAH_PMI632 {
     /* 4204748_Linkchip_JVL_4950mAH_PMI632_averaged_Master_Sep20th2019 */
     qcom,max-voltage-uv = <4400000>;
     qcom,fg-cc-cv-threshold-mv = <4390>;
-    qcom,fastchg-current-ma = <2000>;
+    qcom,fastchg-current-ma = <3000>;
     qcom,batt-id-kohm = <300>;
     qcom,battery-beta = <3380>;
     qcom,battery-therm-kohm = <10>;
@@ -12,6 +12,17 @@ qcom,4204748_Linkchip_JVL_4950mAH_PMI632 {
     qcom,jeita-soft-thresholds = <0x307F 0xFDC>;
     /* COLD = 0 DegC, HOT = 53 DegC */
     qcom,jeita-hard-thresholds = <0x36B9 0xCA0>;
+	qcom,jeita-fcc-ranges = <0   100  1725000
+           101  380  3000000
+           381  440  2500000
+           441  470  2000000
+           471  530  1000000>;
+    qcom,jeita-fv-ranges = <0   100  4250000
+		   101  380  4400000
+		   381  450  4400000
+           451  500  4400000
+           501  530  4400000>;
+
 	qcom,fcc1-temp-lut {
 		qcom,lut-col-legend = <0 10 25 40 50>;
 		qcom,lut-data = <4769 4904 5045 5106 5130>;
