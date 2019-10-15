@@ -295,8 +295,8 @@
 				type = "passive";
 			};
 			quiet_batt_trip5: quiet_batt-trip5 {
-				temperature = <48000>;
-				hysteresis = <2000>;
+				temperature = <47000>;
+				hysteresis = <1000>;
 				type = "passive";
 			};
 			quiet_modem_trip1: quiet_modem-trip1 {
